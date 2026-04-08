@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Bypass - Dr_saito's_Lab</title>
+    <title>Dr_saito's_Lab - Search</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; overflow: hidden; }
-        .header {
-            height: 45px; background: #1a1a1a; color: white;
-            display: flex; align-items: center; padding: 0 15px; font-family: sans-serif;
-            border-bottom: 1px solid #333;
-        }
-        .header a { color: #00aaff; text-decoration: none; margin-right: 20px; font-weight: bold; }
-        iframe { width: 100%; height: calc(100% - 45px); border: none; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #0b0b0b; color: #fff; font-family: sans-serif; overflow: hidden; }
+        .header { height: 50px; background: #1a1a1a; display: flex; align-items: center; padding: 0 20px; border-bottom: 2px solid #00aaff; }
+        .header a { color: #00aaff; text-decoration: none; font-weight: bold; }
+        .status { margin-left: auto; font-size: 12px; color: #555; }
+        /* 読み込み中が長い場合の対策：iframeを少し遅らせて表示 */
+        iframe { width: 100%; height: calc(100% - 50px); border: none; background: #000; }
     </style>
 </head>
 <body>
     <div class="header">
         <a href="index.html">← 戻る</a>
-        <span>Bypass Mode (Server: Yewtu.be)</span>
+        <div class="status">Bypass Tunnel Active</div>
     </div>
 
-    <iframe src="https://yewtu.be/search" 
+    <iframe src="https://iv.ggtyler.dev/search" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
             allowfullscreen>
     </iframe>
