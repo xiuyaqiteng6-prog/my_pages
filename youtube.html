@@ -3,27 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bypass Player - Dr_saito's_Lab</title>
+    <title>Bypass Redirect - Dr_saito's_Lab</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; overflow: hidden; }
-        .header {
-            height: 45px; background: #1a1a1a; color: white;
-            display: flex; align-items: center; padding: 0 15px; font-family: sans-serif;
-            border-bottom: 1px solid #333;
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            text-align: center;
         }
-        .header a { color: #00aaff; text-decoration: none; margin-right: 20px; font-weight: bold; }
-        iframe { width: 100%; height: calc(100% - 45px); border: none; }
+        .btn-go {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            color: #fff;
+            background: #e60000;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(230, 0, 0, 0.5);
+        }
+        .msg { margin-bottom: 20px; color: #aaa; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="index.html">← 戻る</a>
-        <span>Bypass Player (Server: Vern)</span>
-    </div>
 
-    <iframe src="https://inv.vern.cc/search" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-    </iframe>
+    <p class="msg">フィルタリングを回避して接続中...</p>
+    
+    <a href="https://inv.vern.cc/search" class="btn-go">
+        YouTubeを表示する
+    </a>
+
+    <p style="margin-top: 30px; font-size: 0.8rem; color: #555;">
+        ※自動で移動しない場合は上のボタンを押してください。
+    </p>
+
+    <script>
+        // ページを開いて1秒後に自動で飛ばす（iframeを使わないのでブロックされにくい）
+        setTimeout(function(){
+            window.location.href = "https://inv.vern.cc/search";
+        }, 1000);
+    </script>
+
 </body>
 </html>
