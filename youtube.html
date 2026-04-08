@@ -3,51 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bypass Redirect - Dr_saito's_Lab</title>
+    <title>Secure Tunnel - Dr_saito's_Lab</title>
     <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: sans-serif;
-            text-align: center;
+        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        .btn-tunnel {
+            padding: 20px 40px; font-size: 1.2rem; color: #fff; background: #4285F4; /* Google Blue */
+            border: none; border-radius: 5px; text-decoration: none; font-weight: bold;
         }
-        .btn-go {
-            padding: 20px 40px;
-            font-size: 1.5rem;
-            color: #fff;
-            background: #e60000;
-            border: none;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: bold;
-            box-shadow: 0 0 20px rgba(230, 0, 0, 0.5);
-        }
-        .msg { margin-bottom: 20px; color: #aaa; }
+        .notice { margin-top: 20px; color: #888; font-size: 0.9rem; text-align: center; padding: 0 20px; }
     </style>
 </head>
 <body>
 
-    <p class="msg">フィルタリングを回避して接続中...</p>
-    
-    <a href="https://www.youtube.com/" class="btn-go">
-        YouTubeを表示する
+    <a href="https://translate.google.com/translate?sl=en&tl=ja&u=https://iv.melmac.space/search" class="btn-tunnel">
+        GoogleトンネルでYouTubeを開く
     </a>
 
-    <p style="margin-top: 30px; font-size: 0.8rem; color: #555;">
-        ※自動で移動しない場合は上のボタンを押してください。
-    </p>
+    <div class="notice">
+        ※Google翻訳の枠内で表示することで、ブロックを回避します。<br>
+        画面上の「元の言語」や「翻訳」のバーは無視してください。
+    </div>
 
     <script>
-        // ページを開いて1秒後に自動で飛ばす（iframeを使わないのでブロックされにくい）
+        // 自動で飛ばすと怪しまれる場合があるため、あえてボタン押しを推奨しますが、
+        // 念のため5秒後に自動転送をセットしておきます。
         setTimeout(function(){
-            window.location.href = "https://inv.vern.cc/search";
-        }, 1000);
+            window.location.href = "https://translate.google.com/translate?sl=en&tl=ja&u=https://iv.melmac.space/search";
+        }, 5000);
     </script>
 
 </body>
