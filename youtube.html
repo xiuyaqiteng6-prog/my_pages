@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Stream Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Link - Dr_saito's_Lab</title>
     <style>
-        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
-        input { width: 80%; padding: 10px; margin: 20px 0; border-radius: 5px; border: none; }
-        video { width: 90%; max-width: 800px; border: 1px solid #333; }
-        button { padding: 10px 20px; background: #00aaff; color: #fff; border: none; cursor: pointer; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Segoe UI', sans-serif; }
+        .card { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
+        .btn-bypass {
+            display: inline-block; padding: 15px 30px; font-size: 1.2rem; color: #fff; 
+            background: linear-gradient(45deg, #4285F4, #34A853); /* Google色 */
+            border: none; border-radius: 50px; text-decoration: none; font-weight: bold; transition: 0.3s;
+        }
+        .btn-bypass:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(66, 133, 244, 0.5); }
+        .warn { margin-top: 15px; color: #ffcc00; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <h3>YouTube Stream Bypass</h3>
-    <input type="text" id="vid" placeholder="YouTubeの動画IDを入力 (例: dQw4w9WgXcQ)">
-    <br>
-    <button onclick="playVideo()">再生開始</button>
-    <br><br>
-    <video id="player" controls autoplay></video>
 
-    <script>
-        function playVideo() {
-            const id = document.getElementById('vid').value;
-            // ミラーサーバーから「動画データ本体」のみを抽出して再生
-            // これにより、YouTubeのプレイヤー自体を読み込まないためブロックされにくい
-            const streamUrl = "https://inv.tux.pizza/latest_version?id=" + id + "&itag=22";
-            document.getElementById('player').src = streamUrl;
-        }
-    </script>
+    <div class="card">
+        <h2 style="margin-top:0;">YouTube Bypass Proxy</h2>
+        <p style="color:#888;">Googleの通信網を介して動画にアクセスします</p>
+        
+        <a href="https://translate.google.com/translate?sl=en&tl=ja&u=https://inv.tux.pizza/search" class="btn-bypass">
+            トンネルを起動して視聴
+        </a>
+
+        <p class="warn">※「危険なサイト」と出る場合は、Google側の判断です。<br>一度戻って、URL内の 'tux.pizza' を 'vern.cc' などに変えて試してください。</p>
+    </div>
+
 </body>
 </html>
