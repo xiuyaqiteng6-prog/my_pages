@@ -13,13 +13,13 @@
             overflow: hidden;
             background-color: #000;
             display: flex;
-            flex-direction: column; /* 縦並び */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* 背景画像：下からフェードイン */
+        /* 背景：宇宙の画像 */
         .background {
             position: fixed;
             top: 0;
@@ -35,39 +35,59 @@
         /* メインタイトル */
         .title {
             color: white;
-            font-size: clamp(2rem, 8vw, 4rem); /* 画面幅に合わせて可変 */
+            font-size: clamp(2.5rem, 10vw, 5rem);
             font-weight: bold;
-            letter-spacing: 0.1em;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+            margin-bottom: 40px;
             opacity: 0;
-            animation: fadeIn 1.5s ease-out 1s forwards;
-            margin-bottom: 30px;
+            animation: fadeIn 1.5s ease-out 0.8s forwards;
         }
 
-        /* 回避プログラムボタン */
-        .btn-bypass {
+        /* ボタンコンテナ */
+        .nav-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
             opacity: 0;
-            animation: fadeIn 1.5s ease-out 1.8s forwards; /* タイトルの後に表示 */
-            padding: 15px 30px;
+            animation: fadeIn 1.5s ease-out 1.5s forwards;
+        }
+
+        /* 共通ボタン形式 */
+        .nav-btn {
+            padding: 15px 35px;
             font-size: 1.1rem;
             color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 50px;
             text-decoration: none;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-bypass:hover {
-            background: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-            transform: scale(1.05);
+        /* YouTube回避用（赤系） */
+        .btn-youtube:hover {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff4d4d;
+            box-shadow: 0 0 25px rgba(255, 77, 77, 0.5);
+            transform: translateY(-5px);
+        }
+
+        /* AI Lab用（青緑系） */
+        .btn-ai:hover {
+            background: rgba(0, 255, 204, 0.15);
+            border-color: #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.5);
+            transform: translateY(-5px);
+            color: #00ffcc;
         }
 
         @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(50px); }
+            from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -75,16 +95,29 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* スマホ対応 */
+        @media (max-width: 600px) {
+            .nav-container { flex-direction: column; width: 80%; }
+            .nav-btn { text-align: center; }
+        }
     </style>
 </head>
 <body>
 
     <div class="background"></div>
+    
     <h1 class="title">Dr_saito's_Lab</h1>
     
-    <a href="youtube.html" class="btn-bypass">
-        YouTubeフィルタリング回避プログラム
-    </a>
+    <div class="nav-container">
+        <a href="youtube.html" class="nav-btn btn-youtube">
+            YouTube回避プログラム
+        </a>
+        
+        <a href="ai.html" class="nav-btn btn-ai">
+            AI Lab (Learning System)
+        </a>
+    </div>
 
 </body>
 </html>
