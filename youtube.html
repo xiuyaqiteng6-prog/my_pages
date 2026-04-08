@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Bypass - Dr_saito's_Lab</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; overflow: hidden; }
+        .header {
+            height: 50px; background: #1a1a1a; color: white;
+            display: flex; align-items: center; padding: 0 20px; font-family: sans-serif;
+        }
+        .header a { color: #aaa; text-decoration: none; margin-right: 20px; font-size: 14px; }
+        /* 画面いっぱいに表示 */
+        iframe { width: 100%; height: calc(100% - 50px); border: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html">← 戻る</a>
+        <span>YouTube Player (Bypass Mode)</span>
+    </div>
+
+    <iframe src="https://www.youtube.com/embed/?listType=user_uploads" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+    </iframe>
+</body>
+</html>
