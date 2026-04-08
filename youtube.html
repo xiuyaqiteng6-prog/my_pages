@@ -3,31 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Link - Dr_saito's_Lab</title>
+    <title>Bypass Search - Dr_saito's_Lab</title>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Segoe UI', sans-serif; }
-        .card { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
-        .btn-bypass {
-            display: inline-block; padding: 15px 30px; font-size: 1.2rem; color: #fff; 
-            background: linear-gradient(45deg, #4285F4, #34A853); /* Google色 */
-            border: none; border-radius: 50px; text-decoration: none; font-weight: bold; transition: 0.3s;
-        }
-        .btn-bypass:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(66, 133, 244, 0.5); }
-        .warn { margin-top: 15px; color: #ffcc00; font-size: 0.8rem; }
+        body { background: #050505; color: #eee; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #333; width: 90%; max-width: 500px; text-align: center; }
+        h2 { color: #00aaff; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
+        .btn { display: block; width: 100%; padding: 12px; background: #00aaff; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; }
+        .btn:hover { background: #0088cc; }
+        .hint { font-size: 0.8rem; color: #666; margin-top: 15px; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2 style="margin-top:0;">YouTube Bypass Proxy</h2>
-        <p style="color:#888;">Googleの通信網を介して動画にアクセスします</p>
+    <div class="container">
+        <h2>YouTube Bypass Engine</h2>
+        <input type="text" id="targetUrl" placeholder="動画URLまたは動画IDを入力">
+        <button class="btn" onclick="launchBypass()">検閲を回避して開く</button>
         
-        <a href="https://translate.google.com/translate?sl=en&tl=ja&u=https://inv.tux.pizza/search" class="btn-bypass">
-            トンネルを起動して視聴
-        </a>
-
-        <p class="warn">※「危険なサイト」と出る場合は、Google側の判断です。<br>一度戻って、URL内の 'tux.pizza' を 'vern.cc' などに変えて試してください。</p>
+        <div class="hint">
+            ※URLを貼り付けてボタンを押すと、Googleのサーバーを経由して動画にアクセスします。
+            「安全ではない」と出る場合は、別のミラーを選択してください。
+        </div>
     </div>
+
+    <script>
+        function launchBypass() {
+            let val = document.getElementById('targetUrl').value;
+            let videoId = "";
+
+            // 動画IDの抽出
+            if (val.includes("v=")) {
+                videoId = val.split("v=")[1].split("&")[0];
+            } else if (val.includes("youtu.be/")) {
+                videoId = val.split("youtu.be/")[1].split("?")[0];
+            } else {
+                videoId = val; // そのままIDとして扱う
+            }
+
+            if (!videoId) {
+                alert("URLまたはIDを入力してください");
+                return;
+            }
+
+            // 回避用のミラーサーバー（フィルタリングされにくいものを選択）
+            const mirror = "https://inv.tux.pizza/watch?v=" + videoId;
+            
+            // Google翻訳を「トンネル」として利用してジャンプ
+            const finalUrl = "https://translate.google.com/translate?sl=en&tl=ja&u=" + encodeURIComponent(mirror);
+            
+            window.location.href = finalUrl;
+        }
+    </script>
 
 </body>
 </html>
