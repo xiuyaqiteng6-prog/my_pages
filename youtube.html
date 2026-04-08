@@ -7,22 +7,22 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; overflow: hidden; }
         .header {
-            height: 50px; background: #1a1a1a; color: white;
-            display: flex; align-items: center; padding: 0 20px; font-family: sans-serif;
+            height: 45px; background: #1a1a1a; color: white;
+            display: flex; align-items: center; padding: 0 15px; font-family: sans-serif;
+            border-bottom: 1px solid #333;
         }
-        .header a { color: #aaa; text-decoration: none; margin-right: 20px; font-size: 14px; }
-        /* 画面いっぱいに表示 */
-        iframe { width: 100%; height: calc(100% - 50px); border: none; }
+        .header a { color: #00aaff; text-decoration: none; margin-right: 20px; font-weight: bold; }
+        iframe { width: 100%; height: calc(100% - 45px); border: none; }
     </style>
 </head>
 <body>
     <div class="header">
         <a href="index.html">← 戻る</a>
-        <span>YouTube Player (Bypass Mode)</span>
+        <span>Bypass Player (Optimized)</span>
     </div>
 
-    <iframe src="https://www.youtube.com/embed/?listType=user_uploads" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+    <iframe src="https://inv.tux.pizza/search" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
             allowfullscreen>
     </iframe>
 </body>
