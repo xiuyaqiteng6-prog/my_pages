@@ -1,36 +1,31 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Tunnel - Dr_saito's_Lab</title>
+    <title>Stream Player</title>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        .btn-tunnel {
-            padding: 20px 40px; font-size: 1.2rem; color: #fff; background: #4285F4; /* Google Blue */
-            border: none; border-radius: 5px; text-decoration: none; font-weight: bold;
-        }
-        .notice { margin-top: 20px; color: #888; font-size: 0.9rem; text-align: center; padding: 0 20px; }
+        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
+        input { width: 80%; padding: 10px; margin: 20px 0; border-radius: 5px; border: none; }
+        video { width: 90%; max-width: 800px; border: 1px solid #333; }
+        button { padding: 10px 20px; background: #00aaff; color: #fff; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <a href="https://translate.google.com/translate?sl=en&tl=ja&u=https://iv.melmac.space/search" class="btn-tunnel">
-        GoogleトンネルでYouTubeを開く
-    </a>
-
-    <div class="notice">
-        ※Google翻訳の枠内で表示することで、ブロックを回避します。<br>
-        画面上の「元の言語」や「翻訳」のバーは無視してください。
-    </div>
+    <h3>YouTube Stream Bypass</h3>
+    <input type="text" id="vid" placeholder="YouTubeの動画IDを入力 (例: dQw4w9WgXcQ)">
+    <br>
+    <button onclick="playVideo()">再生開始</button>
+    <br><br>
+    <video id="player" controls autoplay></video>
 
     <script>
-        // 自動で飛ばすと怪しまれる場合があるため、あえてボタン押しを推奨しますが、
-        // 念のため5秒後に自動転送をセットしておきます。
-        setTimeout(function(){
-            window.location.href = "https://translate.google.com/translate?sl=en&tl=ja&u=https://iv.melmac.space/search";
-        }, 5000);
+        function playVideo() {
+            const id = document.getElementById('vid').value;
+            // ミラーサーバーから「動画データ本体」のみを抽出して再生
+            // これにより、YouTubeのプレイヤー自体を読み込まないためブロックされにくい
+            const streamUrl = "https://inv.tux.pizza/latest_version?id=" + id + "&itag=22";
+            document.getElementById('player').src = streamUrl;
+        }
     </script>
-
 </body>
 </html>
