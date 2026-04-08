@@ -3,75 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saito_AI - Learning System</title>
+    <title>Saito_AI - Neural Engine</title>
     <style>
-        body { background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; border-bottom: 1px solid #333; display: flex; flex-direction: column; }
-        .msg { margin-bottom: 15px; padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; }
-        .ai-msg { background: #1a3a3a; border-left: 4px solid #00ffcc; align-self: flex-start; box-shadow: 0 2px 10px rgba(0,255,204,0.1); }
-        .user-msg { background: #333; align-self: flex-end; border-right: 4px solid #888; text-align: left; }
+        body { background: #0a0a0a; color: #fff; font-family: 'Consolas', monospace; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 12px; border-radius: 8px; max-width: 80%; line-height: 1.6; }
+        .ai-msg { background: #1a2a2a; border-left: 4px solid #00ffcc; align-self: flex-start; }
+        .user-msg { background: #333; align-self: flex-end; border-right: 4px solid #888; }
         .input-area { padding: 20px; background: #111; display: flex; gap: 10px; border-top: 1px solid #222; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; outline: none; }
-        button { padding: 10px 20px; background: #00ffcc; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: #000; transition: 0.2s; }
-        button:hover { background: #00cca3; transform: scale(1.05); }
-        .status { font-size: 0.7rem; color: #555; text-align: center; padding: 5px; }
+        input { flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #222; color: #fff; outline: none; }
+        button { padding: 10px 20px; background: #00ffcc; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .status { font-size: 0.75rem; color: #00ffcc; text-align: center; background: #000; padding: 5px; opacity: 0.7; }
     </style>
 </head>
 <body>
 
-<div class="status" id="system-status">System Initializing...</div>
-<div id="chat-box">
-    <div class="msg ai-msg">Saito_AI 起動準備完了。</div>
-</div>
+<div class="status" id="status">System Initializing...</div>
+<div id="chat-box"></div>
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="メッセージを入力、または「AはBだよ」と教えて...">
-    <button onclick="sendMessage()">送信</button>
+    <input type="text" id="userInput" placeholder="メッセージを入力、または「AはBだよ」と教育...">
+    <button onclick="sendMessage()">SEND</button>
 </div>
 
 <script>
-    let wordVectors = {}; // vectors.json
-    let brain = {};       // knowledge.json
+    let wordVectors = {}; // vectors.json (知能の地図)
+    let brain = {};       // knowledge.json (回答集)
 
-    // 1. 外部データのインポート (w2vベクトル & 基礎知識)
+    // 1. 外部データの自動インポート
     async function initAI() {
-        const status = document.getElementById('system-status');
+        const statusDisplay = document.getElementById('status');
         try {
-            // vectors.jsonの読み込み
+            // 学習済みベクトルデータのロード
             const vecRes = await fetch('vectors.json');
-            if (vecRes.ok) wordVectors = await vecRes.ok ? await vecRes.json() : {};
+            if (vecRes.ok) wordVectors = await vecRes.json();
 
-            // knowledge.jsonの読み込み
+            // 回答データのロード
             const knoRes = await fetch('knowledge.json');
             if (knoRes.ok) brain = await knoRes.json();
 
-            // ブラウザに保存されたユーザー学習データの追加
-            const savedData = localStorage.getItem('ai_learning');
-            if (savedData) {
-                Object.assign(brain, JSON.parse(savedData));
-            }
+            // ローカル学習データのロード
+            const saved = localStorage.getItem('ai_learning');
+            if (saved) Object.assign(brain, JSON.parse(saved));
 
-            status.innerText = "All Systems Online. Learning Data Loaded.";
-            addMessage("基礎知能のインポートに成功しました。準備万端です！", 'ai-msg');
+            statusDisplay.innerText = `ONLINE: ${Object.keys(wordVectors).length} words loaded.`;
+            addMessage("システムオンライン。学習済みデータをインポートしました。", 'ai-msg');
         } catch (e) {
-            status.innerText = "Load Error. Running in standalone mode.";
+            statusDisplay.innerText = "OFFLINE: Load Error.";
             console.error(e);
         }
     }
 
-    // 起動実行
     initAI();
 
-    // 2. 類似度計算 (コサイン類似度)
-    function getSimilarity(v1, v2) {
-        if (!v1 || !v2 || v1.length !== v2.length) return 0;
-        let dot = 0, m1 = 0, m2 = 0;
+    // 2. ベクトル間の「近さ」を計算 (コサイン類似度)
+    function calculateSimilarity(v1, v2) {
+        if (!v1 || !v2) return 0;
+        let dotProduct = 0, mag1 = 0, mag2 = 0;
         for (let i = 0; i < v1.length; i++) {
-            dot += v1[i] * v2[i];
-            m1 += v1[i] ** 2;
-            m2 += v2[i] ** 2;
+            dotProduct += v1[i] * v2[i];
+            mag1 += v1[i] ** 2;
+            mag2 += v2[i] ** 2;
         }
-        return dot / (Math.sqrt(m1) * Math.sqrt(m2));
+        return dotProduct / (Math.sqrt(mag1) * Math.sqrt(mag2));
     }
 
     function sendMessage() {
@@ -86,46 +80,43 @@
 
     function processAI(text) {
         let response = "";
-        
-        // --- 学習モードの判定 ---
+
+        // --- AはBだよ（学習モード） ---
         if (text.includes("は") && (text.endsWith("だよ") || text.endsWith("です"))) {
             const parts = text.replace(/だよ|です/g, "").split("は");
             const key = parts[0].trim();
             const value = parts[1].trim();
-            
             brain[key] = value;
             localStorage.setItem('ai_learning', JSON.stringify(brain));
-            response = `「${key}」＝「${value}」ですね。覚えました！`;
+            response = `「${key}」の定義を「${value}」に更新しました。`;
         } 
-        // --- 応答モードの判定 ---
+        // --- 応答モード（ベクトル検索） ---
         else {
-            let bestMatch = text;
-            let highestSim = -1;
-
-            // 入力単語がベクトル辞書にあるか確認
+            let bestWord = null;
+            let maxSim = -1;
             const inputVec = wordVectors[text];
 
             if (inputVec) {
-                // 最も意味が近い既知語を検索
+                // インポートした全単語の中から最も意味が近いものを探す
                 for (let word in wordVectors) {
-                    const sim = getSimilarity(inputVec, wordVectors[word]);
-                    if (sim > highestSim) {
-                        highestSim = sim;
-                        bestMatch = word;
+                    const sim = calculateSimilarity(inputVec, wordVectors[word]);
+                    if (sim > maxSim) {
+                        maxSim = sim;
+                        bestWord = word;
                     }
                 }
             }
 
-            // 類似度が0.8以上なら言い換えとして扱う
-            const targetKey = (highestSim > 0.8) ? bestMatch : text;
-            response = brain[targetKey] || "それはまだ知りません。私に「〇〇は××だよ」と教えてください。";
+            // 最も近い単語(bestWord)に対する回答がbrainにあるか確認
+            const targetKey = (maxSim > 0.8) ? bestWord : text;
+            response = brain[targetKey] || `「${text}」についてはまだ詳しくありません。「${text}は〇〇だよ」と教えてください。`;
             
-            if (highestSim > 0.8 && highestSim < 1.0) {
-                console.log(`Bypass Analysis: ${text} -> ${bestMatch} (${Math.round(highestSim*100)}%)`);
+            if (maxSim > 0.8 && maxSim < 1.0) {
+                console.log(`Bypass: ${text} -> ${bestWord} (${Math.round(maxSim*100)}%)`);
             }
         }
 
-        setTimeout(() => addMessage(response, 'ai-msg'), 500);
+        setTimeout(() => addMessage(response, 'ai-msg'), 400);
     }
 
     function addMessage(text, className) {
