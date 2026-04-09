@@ -2,40 +2,49 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Saito_phD | System Asset Debugger</title>
+    <title>Saito_phD | Asset Debugger</title>
     <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .container { width: 100%; max-width: 800px; border: 1px solid #30363d; background: #161b22; border-radius: 8px; overflow: hidden; }
-        .header { background: #21262d; padding: 10px; font-size: 0.8rem; color: #8b949e; border-bottom: 1px solid #30363d; }
-        .view-area { width: 100%; aspect-ratio: 16/9; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
-        .input-box { padding: 20px; display: flex; gap: 10px; }
-        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 10px; border-radius: 4px; outline: none; }
-        button { background: #238636; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #2ea043; }
+        body { background: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .box { width: 100%; max-width: 800px; border: 1px solid #30363d; background: #161b22; border-radius: 8px; overflow: hidden; }
+        .info { background: #21262d; padding: 10px; font-size: 0.75rem; border-bottom: 1px solid #30363d; color: #58a6ff; }
+        video { width: 100%; display: block; background: #000; }
+        .ui { padding: 20px; display: flex; gap: 10px; }
+        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 4px; outline: none; }
+        button { background: #238636; color: #fff; border: none; padding: 0 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #status { font-size: 0.7rem; color: #8b949e; padding: 0 20px 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">STATUS: SYSTEM_READY / MODE: ASSET_BYPASS</div>
-    <div class="view-area">
-        <iframe id="target-frame" src="about:blank" allow="autoplay; fullscreen"></iframe>
+<div class="box">
+    <div class="info">RAW_DATA_STREAMING_MODE // NO_IFRAME_PROTOCOL</div>
+    
+    <video id="player" controls playsinline poster="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></video>
+
+    <div class="ui">
+        <input type="text" id="vid" placeholder="Input Asset Hash (Video ID)">
+        <button onclick="decode()">DECODE</button>
     </div>
-    <div class="input-box">
-        <input type="text" id="video-id" placeholder="Enter Asset ID...">
-        <button onclick="run()">INIT</button>
-    </div>
+    <div id="status">Ready.</div>
 </div>
 
 <script>
-    function run() {
-        const id = document.getElementById('video-id').value.trim();
-        if (!id) return;
+    function decode() {
+        const id = document.getElementById('vid').value.trim();
+        if(!id) return;
         
-        // 自分のWorkerを叩く。Workerがリダイレクトしてくれる。
-        const target = `/assets/lib/core?id=${id}`;
-        document.getElementById('target-frame').src = target;
+        const status = document.getElementById('status');
+        const player = document.getElementById('player');
+        
+        status.innerText = "Requesting data stream...";
+        
+        // 自分のドメイン内のパスをソースにする
+        player.src = `/assets/lib/core?id=${id}`;
+        
+        player.onloadeddata = () => { status.innerText = "Streaming active."; };
+        player.onerror = () => { status.innerText = "Error: Blocked by firewall or invalid ID."; };
+        
+        player.load();
     }
 </script>
 
