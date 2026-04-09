@@ -2,127 +2,41 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saito_phD | System Asset Debugger</title>
     <style>
-        /* 開発者ツール風のダークテーマ */
-        body { 
-            background: #0d1117; 
-            color: #c9d1d9; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            margin: 0; 
-            padding: 20px;
-        }
-        .debug-container { 
-            width: 100%; 
-            max-width: 850px; 
-            border: 1px solid #30363d; 
-            border-radius: 6px;
-            padding: 0; 
-            background: #161b22;
-            overflow: hidden;
-        }
-        .debug-header { 
-            background: #21262d;
-            padding: 10px 15px;
-            font-size: 0.85rem;
-            color: #8b949e;
-            border-bottom: 1px solid #30363d;
-            display: flex;
-            justify-content: space-between;
-        }
-        .viewer-frame {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #000;
-        }
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .input-panel {
-            padding: 20px;
-            display: flex;
-            gap: 12px;
-            background: #161b22;
-        }
-        input {
-            flex-grow: 1;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #e6edf3;
-            padding: 10px;
-            font-family: monospace;
-            outline: none;
-        }
-        input:focus { border-color: #58a6ff; }
-        button {
-            background: #238636;
-            color: #ffffff;
-            border: 1px solid rgba(240,246,252,0.1);
-            border-radius: 6px;
-            padding: 0 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        button:hover { background: #2ea043; }
-        .footer-info {
-            padding: 10px 20px;
-            font-size: 0.75rem;
-            color: #484f58;
-            border-top: 1px solid #30363d;
-        }
+        body { background: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 800px; border: 1px solid #30363d; background: #161b22; border-radius: 8px; overflow: hidden; }
+        .header { background: #21262d; padding: 10px; font-size: 0.8rem; color: #8b949e; border-bottom: 1px solid #30363d; }
+        video { width: 100%; aspect-ratio: 16/9; background: #000; outline: none; }
+        .input-box { padding: 20px; display: flex; gap: 10px; }
+        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 10px; border-radius: 4px; }
+        button { background: #238636; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="debug-container">
-    <div class="debug-header">
-        <span>lib_core_debugger.exe</span>
-        <span>Build: 2026.04.09-STABLE</span>
-    </div>
+<div class="container">
+    <div class="header">STATUS: CONNECTED / SRC: ASSET_STREAM_v2</div>
+    
+    <video id="v-player" controls playsinline></video>
 
-    <div class="viewer-frame">
-        <iframe id="debug-target" src="about:blank" allow="autoplay; fullscreen"></iframe>
-    </div>
-
-    <div class="input-panel">
-        <input type="text" id="asset-id" placeholder="Asset Hash ID..." spellcheck="false">
-        <button onclick="loadAsset()">Run Debug</button>
-    </div>
-
-    <div class="footer-info">
-        Endpoint: /assets/lib/core | Mode: Header_Injection_Bypass
+    <div class="input-box">
+        <input type="text" id="asset-id" placeholder="Video ID (e.g. dQw4w9WgXcQ)">
+        <button onclick="runDebug()">DECODE</button>
     </div>
 </div>
 
 <script>
-    function loadAsset() {
-        const val = document.getElementById('asset-id').value.trim();
-        if (!val) return;
-
-        // "proxy"という文字は一切使わない
-        // Worker側の `url.pathname.startsWith("/assets/lib/core")` と連動
-        const targetUrl = `/assets/lib/core?id=${val}`;
+    function runDebug() {
+        const id = document.getElementById('asset-id').value.trim();
+        if (!id) return;
         
-        console.log("Loading Internal Asset: " + targetUrl);
-        document.getElementById('debug-target').src = targetUrl;
+        // 動画の読み込み開始
+        const player = document.getElementById('v-player');
+        player.src = `/assets/lib/core?id=${id}`;
+        player.load();
+        player.play();
     }
-
-    // Enterキー対応
-    document.getElementById('asset-id').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') loadAsset();
-    });
 </script>
 
 </body>
