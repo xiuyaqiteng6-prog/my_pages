@@ -1,57 +1,25 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Saito_phD | Media Debugger</title>
-    <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .box { width: 100%; max-width: 800px; border: 1px solid #30363d; background: #161b22; border-radius: 8px; overflow: hidden; }
-        video { width: 100%; background: #000; display: block; }
-        .ui { padding: 20px; display: flex; gap: 10px; border-top: 1px solid #30363d; }
-        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 4px; }
-        button { background: #238636; color: #fff; border: none; padding: 0 20px; border-radius: 4px; cursor: pointer; }
-        #log { font-size: 0.75rem; padding: 0 20px 20px; color: #8b949e; white-space: pre-wrap; }
-    </style>
-</head>
-<body>
-
-<div class="box">
-    <video id="p" controls playsinline></video>
-    <div class="ui">
-        <input type="text" id="vid" placeholder="Video ID...">
-        <button onclick="run()">DECODE</button>
-    </div>
-    <div id="log">Status: Idle</div>
-</div>
-
 <script>
     function run() {
-        const id = document.getElementById('vid').value.trim();
+        let inputVal = document.getElementById('vid').value.trim();
         const p = document.getElementById('p');
         const log = document.getElementById('log');
         
-        if(!id) return;
-        
-        log.innerText = "Attempting to fetch stream URL...";
-        
-        // ソースをセット
-        p.src = `/assets/lib/core?id=${id}`;
-        
-        p.onplaying = () => { log.innerText = "SUCCESS: Streaming active."; };
-        
-        p.onerror = () => {
-            const err = p.error;
-            let msg = "Unknown Error";
-            if (err.code === 1) msg = "Aborted";
-            if (err.code === 2) msg = "Network Error";
-            if (err.code === 3) msg = "Decode Error";
-            if (err.code === 4) msg = "Source Not Supported (MIME type issue)";
-            log.innerText = "ERROR: " + msg + "\nCode: " + err.code;
-        };
+        if(!inputVal) return;
 
+        // URLからIDだけを抜く処理 (予備)
+        if (inputVal.includes("v=")) {
+            inputVal = inputVal.split("v=")[1].split("&")[0];
+        } else if (inputVal.includes("youtu.be/")) {
+            inputVal = inputVal.split("youtu.be/")[1].split("?")[0];
+        }
+        
+        log.innerText = "Targeting Asset ID: " + inputVal + "\nRequesting raw stream...";
+        
+        // 自分のWorkerのパス。ブラウザには「ただの動画」と思わせる。
+        p.src = `/assets/lib/core?id=${inputVal}`;
         p.load();
+        p.play().catch(e => {
+            log.innerText += "\nPlayback failed: " + e.message;
+        });
     }
 </script>
-
-</body>
-</html>
