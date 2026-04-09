@@ -1,46 +1,19 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saito_phD | Media Proxy Lab</title>
-    <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 800px; text-align: center; }
-        h1 { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid #0f0; padding-bottom: 5px; }
-        iframe { width: 100%; aspect-ratio: 16 / 9; border: 1px solid #0f0; background: #111; }
-        .input-area { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
-        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 60%; outline: none; }
-        button { background: #0f0; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0c0; }
-        .status { margin-top: 10px; font-size: 0.8rem; opacity: 0.7; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>[ENCRYPTED_MEDIA_STREAM_v3]</h1>
-        
-        <iframe id="main-player" src="" allowfullscreen></iframe>
-        
-        <div class="input-area">
-            <input type="text" id="vid" placeholder="VIDEO_ID (e.g. dQw4w9WgXcQ)">
-            <button onclick="stream()">INITIATE</button>
-        </div>
-        <div class="status">CONNECTED TO: drsaitolab.dpdns.org</div>
+<div class="container">
+    <h1>[LAB_STREAM_STATION]</h1>
+    <video id="player" controls style="width:100%; border:1px solid #0f0;"></video>
+    
+    <div class="input-area">
+        <input type="text" id="vid" placeholder="VIDEO_ID">
+        <button onclick="startStream()">LOAD STREAM</button>
     </div>
+</div>
 
-    <script>
-        function stream() {
-            const id = document.getElementById('vid').value;
-            if(!id) return;
-            
-            // 外部のyoutube.comを一切使わず、自分のドメインのWorkerパスを指定
-            // これにより、通信は drsaitolab.dpdns.org/proxy?... だけになる
-            const proxyUrl = `/proxy?v=${id}`;
-            document.getElementById('main-player').src = proxyUrl;
-            
-            console.log("Request sent to internal proxy: " + proxyUrl);
-        }
-    </script>
-</body>
-</html>
+<script>
+function startStream() {
+    const id = document.getElementById('vid').value;
+    if(!id) return;
+    // 自分のWorkerを動画の「ソース」に指定
+    document.getElementById('player').src = `/proxy?v=${id}`;
+    document.getElementById('player').play();
+}
+</script>
