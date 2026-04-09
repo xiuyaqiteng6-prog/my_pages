@@ -3,43 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Lab / Assets</title>
+    <title>Saito_phD | Media Proxy Lab</title>
     <style>
-        /* Saito_phD好みの sci-fi / ターミナル風デザイン */
-        body { background-color: #0d1117; color: #58a6ff; font-family: monospace; margin: 0; overflow: hidden; }
-        #player-container { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border: 2px solid #30363d; width: 80%; height: 80%; box-shadow: 0 0 20px rgba(88, 166, 255, 0.2); }
-        .controls { margin-top: 10px; }
-        input { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 5px; width: 300px; }
-        button { background: #238636; color: white; border: none; padding: 5px 15px; cursor: pointer; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 800px; text-align: center; }
+        h1 { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid #0f0; padding-bottom: 5px; }
+        iframe { width: 100%; aspect-ratio: 16 / 9; border: 1px solid #0f0; background: #111; }
+        .input-area { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 60%; outline: none; }
+        button { background: #0f0; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0c0; }
+        .status { margin-top: 10px; font-size: 0.8rem; opacity: 0.7; }
     </style>
 </head>
 <body>
-    <div id="player-container">
-        <iframe id="video-frame" src="" allowfullscreen></iframe>
+    <div class="container">
+        <h1>[ENCRYPTED_MEDIA_STREAM_v3]</h1>
         
-        <div class="controls">
-            <input type="text" id="video-id" placeholder="Enter Video ID (e.g. dQw4w9WgXcQ)">
-            <button onclick="loadVideo()">LOAD STREAM</button>
+        <iframe id="main-player" src="" allowfullscreen></iframe>
+        
+        <div class="input-area">
+            <input type="text" id="vid" placeholder="VIDEO_ID (e.g. dQw4w9WgXcQ)">
+            <button onclick="stream()">INITIATE</button>
         </div>
-        <p style="font-size: 10px; color: #8b949e;">[SYSTEM]: Connection encrypted via Cloudflare Proxy</p>
+        <div class="status">CONNECTED TO: drsaitolab.dpdns.org</div>
     </div>
 
     <script>
-        function loadVideo() {
-            const id = document.getElementById('video-id').value;
-            // YouTubeという文字列を含まない公開ミラーインスタンスのリスト
-            // これらは有志が運営しているYouTubeの覗き窓のようなものです
-            const instances = [
-                "https://inv.tux.digital/embed/",
-                "https://invidious.namazso.eu/embed/",
-                "https://yewtu.be/embed/",
-                "https://vid.puffyan.us/embed/"
-            ];
+        function stream() {
+            const id = document.getElementById('vid').value;
+            if(!id) return;
             
-            // フィルタリングに引っかかっていないインスタンスをランダムまたは順次選択
-            const targetInstance = instances[0]; 
-            document.getElementById('video-frame').src = targetInstance + id;
+            // 外部のyoutube.comを一切使わず、自分のドメインのWorkerパスを指定
+            // これにより、通信は drsaitolab.dpdns.org/proxy?... だけになる
+            const proxyUrl = `/proxy?v=${id}`;
+            document.getElementById('main-player').src = proxyUrl;
+            
+            console.log("Request sent to internal proxy: " + proxyUrl);
         }
     </script>
 </body>
