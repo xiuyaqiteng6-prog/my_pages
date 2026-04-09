@@ -1,31 +1,42 @@
-<video id="v-player" controls playsinline>
-    <source id="v-source" type="video/mp4">
-</video>
-
 <script>
     async function bootStream() {
         let val = document.getElementById('asset-id').value.trim();
         const player = document.getElementById('v-player');
-        const source = document.getElementById('v-source');
         const log = document.getElementById('debug-log');
         
         if (!val) return;
-
-        // ID抽出
         if (val.includes("v=")) val = val.split("v=")[1].split("&")[0];
         
-        log.innerText = "Initializing sequence...\nTarget ID: " + val;
+        log.innerText = "Connecting to Secure Stream...";
 
-        // 偽装パスにタイムスタンプを付与（キャッシュによるtext/plain誤認を防止）
-        const requestUrl = `/assets/lib/core?id=${val}&t=${Date.now()}`;
+        // 毎回異なるURLにすることでキャッシュによる停止を回避
+        const requestUrl = `/assets/lib/core?id=${val}&nocache=${Math.random()}`;
         
-        source.src = requestUrl;
-        player.load(); // ソースを再読み込み
+        player.src = requestUrl;
+        
+        // タイムアウト監視
+        const timeout = setTimeout(() => {
+            if (player.readyState < 3) { // 3: HAVE_FUTURE_DATA
+                log.innerText = "TIMEOUT: Reconnecting...";
+                bootStream(); // 自動再試行
+            }
+        }, 10000); // 10秒待ってダメなら再起動
 
-        player.play().then(() => {
-            log.innerText = "STREAM_ACTIVE: Decoder initialized.";
-        }).catch(err => {
-            log.innerText = "PLAY_ERROR: Check console for MIME issues.";
-        });
+        player.onplaying = () => {
+            clearTimeout(timeout);
+            log.innerText = "STATUS: STREAMING_ACTIVE";
+        };
+
+        player.onerror = () => {
+            log.innerText = "STALLED: Server dropped connection. Retrying...";
+            setTimeout(bootStream, 2000);
+        };
+
+        player.load();
+        try {
+            await player.play();
+        } catch (e) {
+            log.innerText += "\nInteraction required to play.";
+        }
     }
 </script>
