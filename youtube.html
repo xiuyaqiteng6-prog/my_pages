@@ -1,69 +1,31 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saito_phD | Asset Stream Station</title>
-    <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: 'Consolas', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .container { width: 100%; max-width: 800px; border: 1px solid #30363d; background: #161b22; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .status-bar { background: #21262d; padding: 10px; font-size: 0.75rem; color: #58a6ff; border-bottom: 1px solid #30363d; }
-        video { width: 100%; aspect-ratio: 16/9; background: #000; display: block; }
-        .input-area { padding: 20px; display: flex; gap: 10px; }
-        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 4px; outline: none; }
-        button { background: #238636; color: #fff; border: none; padding: 0 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #debug-log { font-size: 0.7rem; padding: 0 20px 20px; color: #8b949e; white-space: pre-wrap; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="status-bar">SYSTEM_STATUS: STANDARDS_MODE_ACTIVE // SRC: ASSET_LIB_CORE</div>
-    
-    <video id="v-player" controls playsinline></video>
-
-    <div class="input-area">
-        <input type="text" id="asset-id" placeholder="Video ID or URL..." spellcheck="false">
-        <button onclick="bootStream()">EXECUTE</button>
-    </div>
-    <div id="debug-log">Log: Awaiting input...</div>
-</div>
+<video id="v-player" controls playsinline>
+    <source id="v-source" type="video/mp4">
+</video>
 
 <script>
     async function bootStream() {
         let val = document.getElementById('asset-id').value.trim();
         const player = document.getElementById('v-player');
+        const source = document.getElementById('v-source');
         const log = document.getElementById('debug-log');
         
         if (!val) return;
 
-        // ID抽出ロジック
+        // ID抽出
         if (val.includes("v=")) val = val.split("v=")[1].split("&")[0];
-        else if (val.includes("youtu.be/")) val = val.split("youtu.be/")[1].split("?")[0];
-
-        log.innerText = "Target: " + val + "\nInitializing stream via Worker...";
-
-        // 自分のWorkerの偽装パス
-        const requestUrl = `/assets/lib/core?id=${val}`;
         
-        player.src = requestUrl;
-        
-        player.onplaying = () => { log.innerText = "Status: Streaming started successfully."; };
-        player.onerror = () => {
-            const e = player.error;
-            log.innerText = `Status: Playback Error (Code: ${e.code})`;
-            console.error("Video Error:", e);
-        };
+        log.innerText = "Initializing sequence...\nTarget ID: " + val;
 
-        try {
-            player.load();
-            await player.play();
-        } catch (err) {
-            log.innerText += "\nAuto-play prevented or network error.";
-        }
+        // 偽装パスにタイムスタンプを付与（キャッシュによるtext/plain誤認を防止）
+        const requestUrl = `/assets/lib/core?id=${val}&t=${Date.now()}`;
+        
+        source.src = requestUrl;
+        player.load(); // ソースを再読み込み
+
+        player.play().then(() => {
+            log.innerText = "STREAM_ACTIVE: Decoder initialized.";
+        }).catch(err => {
+            log.innerText = "PLAY_ERROR: Check console for MIME issues.";
+        });
     }
 </script>
-
-</body>
-</html>
