@@ -2,59 +2,96 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bypass Search - Dr_saito's_Lab</title>
+    <title>Saito_YT Terminal</title>
     <style>
-        body { background: #050505; color: #eee; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #333; width: 90%; max-width: 500px; text-align: center; }
-        h2 { color: #00aaff; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
-        .btn { display: block; width: 100%; padding: 12px; background: #00aaff; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; }
-        .btn:hover { background: #0088cc; }
-        .hint { font-size: 0.8rem; color: #666; margin-top: 15px; line-height: 1.5; }
+        :root { --main-color: #ff0000; --bg-color: #0a0a0a; --panel-bg: #111; }
+        body { background: var(--bg-color); color: #fff; font-family: 'Consolas', monospace; margin: 0; display: flex; height: 100vh; }
+        
+        /* サイドバー：履歴とブックマーク */
+        #side-bar { width: 250px; background: var(--panel-bg); border-right: 1px solid #333; display: flex; flex-direction: column; }
+        .sidebar-item { padding: 10px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.8rem; }
+        .sidebar-item:hover { background: #222; color: var(--main-color); }
+
+        /* メインエリア */
+        #main-content { flex: 1; display: flex; flex-direction: column; }
+        .header { padding: 15px; background: #000; display: flex; gap: 10px; align-items: center; }
+        input { flex: 1; background: #222; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px; }
+        button { background: var(--main-color); border: none; color: #fff; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+
+        /* プレイヤーエリア */
+        #player-container { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+        iframe { width: 95%; height: 90%; border: 2px solid #333; box-shadow: 0 0 20px rgba(255,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>YouTube Bypass Engine</h2>
-        <input type="text" id="targetUrl" placeholder="動画URLまたは動画IDを入力">
-        <button class="btn" onclick="launchBypass()">検閲を回避して開く</button>
-        
-        <div class="hint">
-            ※URLを貼り付けてボタンを押すと、Googleのサーバーを経由して動画にアクセスします。
-            「安全ではない」と出る場合は、別のミラーを選択してください。
-        </div>
+<div id="side-bar">
+    <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid #444;">FAVORITES</div>
+    <div id="fav-list">
+        <div class="sidebar-item" onclick="playVideo('dQw4w9WgXcQ')">Test Video</div>
+    </div>
+</div>
+
+<div id="main-content">
+    <div class="header">
+        <input type="text" id="videoUrl" placeholder="YouTube URL or IDを入力...">
+        <button onclick="handleInput()">LOAD</button>
+        <button onclick="addFav()" style="background: #444;">★</button>
     </div>
 
-    <script>
-        function launchBypass() {
-            let val = document.getElementById('targetUrl').value;
-            let videoId = "";
+    <div id="player-container">
+        <div id="placeholder" style="color: #444;">WAITING FOR SIGNAL...</div>
+    </div>
+</div>
 
-            // 動画IDの抽出
-            if (val.includes("v=")) {
-                videoId = val.split("v=")[1].split("&")[0];
-            } else if (val.includes("youtu.be/")) {
-                videoId = val.split("youtu.be/")[1].split("?")[0];
-            } else {
-                videoId = val; // そのままIDとして扱う
-            }
+<script>
+    // 1. 動画再生処理
+    function playVideo(id) {
+        const container = document.getElementById('player-container');
+        // YouTubeの埋め込み形式に変換
+        container.innerHTML = `
+            <iframe src="https://www.youtube.com/embed/${id}?autoplay=1" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>`;
+        
+        // 履歴を保存（localStorage）
+        saveHistory(id);
+    }
 
-            if (!videoId) {
-                alert("URLまたはIDを入力してください");
-                return;
-            }
-
-            // 回避用のミラーサーバー（フィルタリングされにくいものを選択）
-            const mirror = "https://inv.tux.pizza/watch?v=" + videoId;
-            
-            // Google翻訳を「トンネル」として利用してジャンプ
-            const finalUrl = "https://translate.google.com/translate?sl=en&tl=ja&u=" + encodeURIComponent(mirror);
-            
-            window.location.href = finalUrl;
+    // 2. 入力判別（URLからIDを抽出）
+    function handleInput() {
+        const input = document.getElementById('videoUrl').value;
+        let videoId = "";
+        
+        if (input.includes("v=")) {
+            videoId = input.split("v=")[1].split("&")[0];
+        } else if (input.includes("youtu.be/")) {
+            videoId = input.split("youtu.be/")[1];
+        } else {
+            videoId = input; // 直接IDが入力された場合
         }
-    </script>
 
+        if (videoId) playVideo(videoId);
+    }
+
+    // 3. お気に入り登録
+    function addFav() {
+        const input = document.getElementById('videoUrl').value;
+        const list = document.getElementById('fav-list');
+        // 簡易的にお気に入りに追加
+        const newItem = document.createElement('div');
+        newItem.className = 'sidebar-item';
+        newItem.innerText = `Saved: ${input.substring(0, 15)}...`;
+        newItem.onclick = () => handleInput();
+        list.appendChild(newItem);
+    }
+
+    function saveHistory(id) {
+        console.log("Watching history saved:", id);
+        // ここに履歴を保存するロジックを追加可能
+    }
+</script>
 </body>
 </html>
