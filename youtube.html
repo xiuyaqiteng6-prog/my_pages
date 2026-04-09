@@ -1,19 +1,130 @@
-<div class="container">
-    <h1>[LAB_STREAM_STATION]</h1>
-    <video id="player" controls style="width:100%; border:1px solid #0f0;"></video>
-    
-    <div class="input-area">
-        <input type="text" id="vid" placeholder="VIDEO_ID">
-        <button onclick="startStream()">LOAD STREAM</button>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saito_phD | Media Proxy Lab</title>
+    <style>
+        /* ターミナル風のサイバーパンクデザイン */
+        body { 
+            background: #050505; 
+            color: #00ff41; 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0; 
+            padding: 20px;
+        }
+        .lab-container { 
+            width: 100%; 
+            max-width: 900px; 
+            border: 1px solid #00ff41; 
+            padding: 20px; 
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+        }
+        .header { 
+            border-bottom: 1px solid #00ff41; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border: 1px solid #333;
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .control-panel {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex-grow: 1;
+            background: #000;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 12px;
+            outline: none;
+        }
+        button {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 10px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #008f11;
+            color: #fff;
+        }
+        .status-bar {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #008f11;
+        }
+    </style>
+</head>
+<body>
+
+<div class="lab-container">
+    <div class="header">
+        <span>[DEVICE_ID: Saito_phD_LAB]</span>
+        <span>STATUS: ACTIVE</span>
+    </div>
+
+    <div class="video-wrapper">
+        <iframe id="main-player" allow="autoplay; fullscreen" src=""></iframe>
+    </div>
+
+    <div class="control-panel">
+        <input type="text" id="video-id" placeholder="Enter Video ID (e.g. dQw4w9WgXcQ)" spellcheck="false">
+        <button onclick="executeStream()">INITIATE</button>
+    </div>
+
+    <div class="status-bar">
+        Target Endpoint: https://drsaitolab.dpdns.org/proxy<br>
+        Protocol: Cloudflare Workers Redirect Bypass
     </div>
 </div>
 
 <script>
-function startStream() {
-    const id = document.getElementById('vid').value;
-    if(!id) return;
-    // 自分のWorkerを動画の「ソース」に指定
-    document.getElementById('player').src = `/proxy?v=${id}`;
-    document.getElementById('player').play();
-}
+    function executeStream() {
+        const id = document.getElementById('video-id').value.trim();
+        if (!id) {
+            alert("ERROR: Video ID is required.");
+            return;
+        }
+
+        // 自分のドメインの /proxy パスへ IDを渡す
+        // Worker側でこのパスを検知して youtube-nocookie.com へリダイレクトする
+        const proxyPath = `/proxy?v=${id}`;
+        
+        console.log("Routing via local worker: " + proxyPath);
+        document.getElementById('main-player').src = proxyPath;
+    }
+
+    // Enterキーで実行できるようにする
+    document.getElementById('video-id').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            executeStream();
+        }
+    });
 </script>
+
+</body>
+</html>
