@@ -3,40 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saito_phD | Media Proxy Lab</title>
+    <title>Saito_phD | System Asset Debugger</title>
     <style>
-        /* ターミナル風のサイバーパンクデザイン */
+        /* 開発者ツール風のダークテーマ */
         body { 
-            background: #050505; 
-            color: #00ff41; 
-            font-family: 'Consolas', 'Monaco', monospace; 
+            background: #0d1117; 
+            color: #c9d1d9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             margin: 0; 
             padding: 20px;
         }
-        .lab-container { 
+        .debug-container { 
             width: 100%; 
-            max-width: 900px; 
-            border: 1px solid #00ff41; 
-            padding: 20px; 
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+            max-width: 850px; 
+            border: 1px solid #30363d; 
+            border-radius: 6px;
+            padding: 0; 
+            background: #161b22;
+            overflow: hidden;
         }
-        .header { 
-            border-bottom: 1px solid #00ff41; 
-            margin-bottom: 20px; 
-            padding-bottom: 10px;
-            font-size: 1.2rem;
+        .debug-header { 
+            background: #21262d;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            color: #8b949e;
+            border-bottom: 1px solid #30363d;
             display: flex;
             justify-content: space-between;
         }
-        .video-wrapper {
+        .viewer-frame {
             position: relative;
             width: 100%;
             aspect-ratio: 16 / 9;
             background: #000;
-            border: 1px solid #333;
         }
         iframe {
             position: absolute;
@@ -46,83 +48,80 @@
             height: 100%;
             border: none;
         }
-        .control-panel {
-            margin-top: 20px;
+        .input-panel {
+            padding: 20px;
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            background: #161b22;
         }
         input {
             flex-grow: 1;
-            background: #000;
-            border: 1px solid #00ff41;
-            color: #00ff41;
-            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            padding: 10px;
+            font-family: monospace;
             outline: none;
         }
+        input:focus { border-color: #58a6ff; }
         button {
-            background: #00ff41;
-            color: #000;
-            border: none;
-            padding: 10px 25px;
+            background: #238636;
+            color: #ffffff;
+            border: 1px solid rgba(240,246,252,0.1);
+            border-radius: 6px;
+            padding: 0 20px;
             cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
-        button:hover {
-            background: #008f11;
-            color: #fff;
-        }
-        .status-bar {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #008f11;
+        button:hover { background: #2ea043; }
+        .footer-info {
+            padding: 10px 20px;
+            font-size: 0.75rem;
+            color: #484f58;
+            border-top: 1px solid #30363d;
         }
     </style>
 </head>
 <body>
 
-<div class="lab-container">
-    <div class="header">
-        <span>[DEVICE_ID: Saito_phD_LAB]</span>
-        <span>STATUS: ACTIVE</span>
+<div class="debug-container">
+    <div class="debug-header">
+        <span>lib_core_debugger.exe</span>
+        <span>Build: 2026.04.09-STABLE</span>
     </div>
 
-    <div class="video-wrapper">
-        <iframe id="main-player" allow="autoplay; fullscreen" src=""></iframe>
+    <div class="viewer-frame">
+        <iframe id="debug-target" src="about:blank" allow="autoplay; fullscreen"></iframe>
     </div>
 
-    <div class="control-panel">
-        <input type="text" id="video-id" placeholder="Enter Video ID (e.g. dQw4w9WgXcQ)" spellcheck="false">
-        <button onclick="executeStream()">INITIATE</button>
+    <div class="input-panel">
+        <input type="text" id="asset-id" placeholder="Asset Hash ID..." spellcheck="false">
+        <button onclick="loadAsset()">Run Debug</button>
     </div>
 
-    <div class="status-bar">
-        Target Endpoint: https://drsaitolab.dpdns.org/proxy<br>
-        Protocol: Cloudflare Workers Redirect Bypass
+    <div class="footer-info">
+        Endpoint: /assets/lib/core | Mode: Header_Injection_Bypass
     </div>
 </div>
 
 <script>
-    function executeStream() {
-        const id = document.getElementById('video-id').value.trim();
-        if (!id) {
-            alert("ERROR: Video ID is required.");
-            return;
-        }
+    function loadAsset() {
+        const val = document.getElementById('asset-id').value.trim();
+        if (!val) return;
 
-        // 自分のドメインの /proxy パスへ IDを渡す
-        // Worker側でこのパスを検知して youtube-nocookie.com へリダイレクトする
-        const proxyPath = `/proxy?v=${id}`;
+        // "proxy"という文字は一切使わない
+        // Worker側の `url.pathname.startsWith("/assets/lib/core")` と連動
+        const targetUrl = `/assets/lib/core?id=${val}`;
         
-        console.log("Routing via local worker: " + proxyPath);
-        document.getElementById('main-player').src = proxyPath;
+        console.log("Loading Internal Asset: " + targetUrl);
+        document.getElementById('debug-target').src = targetUrl;
     }
 
-    // Enterキーで実行できるようにする
-    document.getElementById('video-id').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            executeStream();
-        }
+    // Enterキー対応
+    document.getElementById('asset-id').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') loadAsset();
     });
 </script>
 
