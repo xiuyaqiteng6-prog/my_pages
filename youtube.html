@@ -2,49 +2,54 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Saito_phD | Asset Debugger</title>
+    <title>Saito_phD | Media Debugger</title>
     <style>
         body { background: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .box { width: 100%; max-width: 800px; border: 1px solid #30363d; background: #161b22; border-radius: 8px; overflow: hidden; }
-        .info { background: #21262d; padding: 10px; font-size: 0.75rem; border-bottom: 1px solid #30363d; color: #58a6ff; }
-        video { width: 100%; display: block; background: #000; }
-        .ui { padding: 20px; display: flex; gap: 10px; }
-        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 4px; outline: none; }
-        button { background: #238636; color: #fff; border: none; padding: 0 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #status { font-size: 0.7rem; color: #8b949e; padding: 0 20px 20px; }
+        video { width: 100%; background: #000; display: block; }
+        .ui { padding: 20px; display: flex; gap: 10px; border-top: 1px solid #30363d; }
+        input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 4px; }
+        button { background: #238636; color: #fff; border: none; padding: 0 20px; border-radius: 4px; cursor: pointer; }
+        #log { font-size: 0.75rem; padding: 0 20px 20px; color: #8b949e; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <div class="info">RAW_DATA_STREAMING_MODE // NO_IFRAME_PROTOCOL</div>
-    
-    <video id="player" controls playsinline poster="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></video>
-
+    <video id="p" controls playsinline></video>
     <div class="ui">
-        <input type="text" id="vid" placeholder="Input Asset Hash (Video ID)">
-        <button onclick="decode()">DECODE</button>
+        <input type="text" id="vid" placeholder="Video ID...">
+        <button onclick="run()">DECODE</button>
     </div>
-    <div id="status">Ready.</div>
+    <div id="log">Status: Idle</div>
 </div>
 
 <script>
-    function decode() {
+    function run() {
         const id = document.getElementById('vid').value.trim();
+        const p = document.getElementById('p');
+        const log = document.getElementById('log');
+        
         if(!id) return;
         
-        const status = document.getElementById('status');
-        const player = document.getElementById('player');
+        log.innerText = "Attempting to fetch stream URL...";
         
-        status.innerText = "Requesting data stream...";
+        // ソースをセット
+        p.src = `/assets/lib/core?id=${id}`;
         
-        // 自分のドメイン内のパスをソースにする
-        player.src = `/assets/lib/core?id=${id}`;
+        p.onplaying = () => { log.innerText = "SUCCESS: Streaming active."; };
         
-        player.onloadeddata = () => { status.innerText = "Streaming active."; };
-        player.onerror = () => { status.innerText = "Error: Blocked by firewall or invalid ID."; };
-        
-        player.load();
+        p.onerror = () => {
+            const err = p.error;
+            let msg = "Unknown Error";
+            if (err.code === 1) msg = "Aborted";
+            if (err.code === 2) msg = "Network Error";
+            if (err.code === 3) msg = "Decode Error";
+            if (err.code === 4) msg = "Source Not Supported (MIME type issue)";
+            log.innerText = "ERROR: " + msg + "\nCode: " + err.code;
+        };
+
+        p.load();
     }
 </script>
 
