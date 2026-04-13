@@ -69,7 +69,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        /* YouTube回避用（赤系） */
         .btn-youtube:hover {
             background: rgba(255, 0, 0, 0.2);
             border-color: #ff4d4d;
@@ -77,7 +76,6 @@
             transform: translateY(-5px);
         }
 
-        /* AI Lab用（青緑系） */
         .btn-ai:hover {
             background: rgba(0, 255, 204, 0.15);
             border-color: #00ffcc;
@@ -86,24 +84,14 @@
             color: #00ffcc;
         }
 
-        /* BGMステータス表示（追加：サイバーパンク風） */
-        #audio-status {
+        /* BGM動作状況（デバッグ用・不可視に近い設定） */
+        #audio-monitor {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            cursor: pointer;
-            z-index: 100;
-            padding: 5px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            transition: 0.3s;
-        }
-        #audio-status:hover {
-            color: white;
-            border-color: rgba(255, 255, 255, 0.5);
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 0.6rem;
+            pointer-events: none;
         }
 
         @keyframes slideUpFade {
@@ -116,7 +104,6 @@
             to { opacity: 1; }
         }
 
-        /* スマホ対応 */
         @media (max-width: 600px) {
             .nav-container { flex-direction: column; width: 80%; }
             .nav-btn { text-align: center; }
@@ -140,41 +127,35 @@
     </div>
 
     <audio id="lab-bgm" loop src="/bgm.mp3"></audio>
-    <div id="audio-status" onclick="manualToggle()">AUDIO: OFF</div>
+    <div id="audio-monitor">AUDIO_SYSTEM: ACTIVE</div>
 
     <script>
         const bgm = document.getElementById('lab-bgm');
-        const statusDisplay = document.getElementById('audio-status');
-        bgm.volume = 0.4; // 音量を40%に設定
+        bgm.volume = 0.4;
 
-        // 状態を切り替える関数
-        function manualToggle() {
+        // ブラウザの自動再生制限を突破するための「強制発火」関数
+        function forceStartAudio() {
             if (bgm.paused) {
-                bgm.play();
-                statusDisplay.innerText = "AUDIO: ON";
-                localStorage.setItem('lab_bgm_enabled', 'true');
-            } else {
-                bgm.pause();
-                statusDisplay.innerText = "AUDIO: OFF";
-                localStorage.setItem('lab_bgm_enabled', 'false');
+                bgm.play().then(() => {
+                    console.log("BGM System Started.");
+                    // AI Labでも確実に再生されるよう状態をセット
+                    localStorage.setItem('lab_bgm_enabled', 'true');
+                }).catch(e => {
+                    // まだクリックされていない場合は待機
+                });
             }
         }
 
-        // 初回クリック時に自動再生を開始（ブラウザ制限対策）
-        window.addEventListener('click', () => {
-            if (bgm.paused && localStorage.getItem('lab_bgm_enabled') !== 'false') {
-                bgm.play().then(() => {
-                    statusDisplay.innerText = "AUDIO: ON";
-                    localStorage.setItem('lab_bgm_enabled', 'true');
-                }).catch(e => console.log("Autoplay blocked"));
-            }
-        }, { once: true });
+        // ユーザーが画面のどこをクリックしても、リンクを押しても、音楽を開始
+        window.addEventListener('mousedown', forceStartAudio);
+        window.addEventListener('touchstart', forceStartAudio);
+        window.addEventListener('keydown', forceStartAudio);
 
-        // ページ読み込み時に前回の設定を確認
+        // ページ読み込み時に既に許可されている場合は再生
         window.addEventListener('load', () => {
-            if (localStorage.getItem('lab_bgm_enabled') === 'true') {
-                statusDisplay.innerText = "AUDIO: SYNCING...";
-            }
+            forceStartAudio();
+            // 500ms後にもう一度試行（安定化のため）
+            setTimeout(forceStartAudio, 500);
         });
     </script>
 
