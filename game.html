@@ -2,87 +2,479 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Saito_phD | Trade & Farm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Saito's Lab | MMO Trade & Farm</title>
     <style>
-        body { margin: 0; background: #222; color: #fff; font-family: monospace; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
-        canvas { border: 4px solid #444; background: #3a5d3a; image-rendering: pixelated; margin-top: 20px; }
-        .ui { width: 600px; display: flex; justify-content: space-between; padding: 10px; background: #000; border: 1px solid #ffa500; margin-top: 10px; }
-        .log { width: 600px; height: 60px; background: rgba(0,0,0,0.8); font-size: 12px; overflow-y: auto; border: 1px solid #444; padding: 5px; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; color: #fff; font-family: monospace; user-select: none; -webkit-user-select: none; }
+        #game-container { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* ゲーム画面（Canvas） */
+        canvas { display: block; background: #333; image-rendering: pixelated; /* ドット絵をくっきり表示 */ }
+        
+        /* UI周り */
+        .ui-panel { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #ffa500; border-radius: 4px; pointer-events: none; z-index: 10; font-size: 14px; line-height: 1.6; }
+        .stat { color: #ffa500; font-weight: bold; }
+        .log { position: absolute; bottom: 120px; left: 10px; width: 250px; height: 80px; background: rgba(0,0,0,0.7); font-size: 12px; overflow-y: hidden; padding: 5px; border-radius: 4px; pointer-events: none; z-index: 5; }
+
+        /* キャラクターエディタ（初回表示） */
+        #editor-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        #pixel-canvas { border: 2px solid #fff; cursor: crosshair; margin-bottom: 20px; }
+        .editor-ui { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .color-btn { width: 30px; height: 30px; border: 2px solid #fff; border-radius: 4px; cursor: pointer; }
+        button#start-game { padding: 10px 30px; font-size: 18px; background: #ffa500; border: none; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold; }
+
+        /* スマホ用バーチャルパッド（スマホ時のみJSで表示） */
+        #touch-controls { position: absolute; bottom: 20px; left: 20px; right: 20px; height: 100px; display: none; justify-content: space-between; align-items: center; z-index: 20; pointer-events: none; }
+        .joystick-base { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; position: relative; pointer-events: auto; }
+        .joystick-stick { width: 40px; height: 40px; background: rgba(255,255,255,0.4); border-radius: 50%; position: absolute; top: 30px; left: 30px; }
+        .action-btn { width: 80px; height: 80px; background: rgba(255,165,0,0.3); border: 2px solid #ffa500; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; pointer-events: auto; }
+        .action-btn:active { background: rgba(255,165,0,0.6); }
+
+        @media (max-width: 768px) { .ui-panel { font-size: 12px; width: 160px; } .log { bottom: 130px; width: 180px; } }
     </style>
 </head>
 <body>
-    <div class="ui">
-        <span>💰 Gold: <span id="gold">100</span></span>
-        <span>🌾 Crops: <span id="crops">0</span></span>
-        <span>👤 Multi-User: <span id="users">1</span> ONLINE</span>
+
+<div id="game-container">
+    <div class="ui-panel">
+        [ <span id="map-name" class="stat">FARM AREA</span> ]<br>
+        💰 Gold: <span id="gold" class="stat">100</span><br>
+        🌾 Crops: <span id="crops" class="stat">0</span><br>
+        👤 ONLINE: <span class="stat">1 + SIM</span>
     </div>
+    <div class="log" id="log">SYSTEM: Use [WASD] or Touch Pad to move.<br>[Space] or Orange Button to act.</div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="touch-controls">
+        <div class="joystick-base" id="joystick">
+            <div class="joystick-stick" id="stick"></div>
+        </div>
+        <div class="action-btn" id="action-bt">ACT</div>
+    </div>
+</div>
+
+<div id="editor-overlay">
+    <h2>DESIGN YOUR 8BIT AVATAR (16x16)</h2>
+    <canvas id="pixel-canvas" width="320" height="320"></canvas>
+    <div class="editor-ui">
+        <div class="color-btn" style="background:#000" onclick="setEditorColor('#000000')"></div>
+        <div class="color-btn" style="background:#fff" onclick="setEditorColor('#ffffff')"></div>
+        <div class="color-btn" style="background:#f00" onclick="setEditorColor('#ff0000')"></div>
+        <div class="color-btn" style="background:#0f0" onclick="setEditorColor('#00ff00')"></div>
+        <div class="color-btn" style="background:#00f" onclick="setEditorColor('#0000ff')"></div>
+        <div class="color-btn" style="background:#ff0" onclick="setEditorColor('#ffff00')"></div>
+        <div class="color-btn" style="background:#f0f" onclick="setEditorColor('#ff00ff')"></div>
+        <div class="color-btn" style="background:#ffa500" onclick="setEditorColor('#ffa500')"></div>
+        <div class="color-btn" style="border-style:dashed; background:rgba(0,0,0,0)" onclick="setEditorColor('erase')">消</div>
+    </div>
+    <button id="start-game">INITIALIZE SYSTEM & START</button>
+</div>
+
+<script>
+// --- システム定数 ---
+const TILE_SIZE = 16; // 8bit風の基本1タイルサイズ
+const SCALE = 3;      // 3倍に拡大して表示（ドット感を出��ため）
+const VIEW_W = Math.ceil(window.innerWidth / (TILE_SIZE * SCALE));
+const VIEW_H = Math.ceil(window.innerHeight / (TILE_SIZE * SCALE));
+const MAP_WIDTH = 60; // 1マップのタイル数（縦横20倍以上の巨大マップへ）
+const MAP_HEIGHT = 60;
+
+// --- グローバル状態 ---
+let stage; // Canvas Context
+let playerTexture = null; // ユーザー自作テクスチャ
+let gameState = "editor";
+let isMobile = 'ontouchstart' in window;
+let activeLogTimeout;
+
+// プレイヤーデータ（localStorageから復元、なければ初期化）
+let player = JSON.parse(localStorage.getItem('saito_lab_player')) || {
+    x: 10, y: 10, gold: 100, crops: 0, map: "farm"
+};
+let input = { x: 0, y: 0, act: false }; // 入力状態
+
+// 簡易マルチプレイ用（シミュレーション）
+let otherPlayers = [
+    { x: 30, y: 30, map: "farm", id: "Guest_Alpha", color: "#00ffff" },
+    { x: 20, y: 20, map: "town", id: "Guest_Beta", color: "#ff00ff" }
+];
+
+// 画面キャッシュ用
+let camera = { x: 0, y: 0 };
+
+// ==========================================
+// 1. テクスチャ生成システム (コードでドット絵を描く)
+// ==========================================
+const tex = {
+    grass: createTilePattern('#3a5d3a', '#2e4c2e', 'grass'),
+    soil: createTilePattern('#5d4037', '#4e342e', 'soil'),
+    crop_0: createTilePattern('#5d4037', '#2e7d32', 'crop_small'), // 成長段階0
+    crop_1: createTilePattern('#5d4037', '#43a047', 'crop_mid'),   // 成長段階1
+    crop_2: createTilePattern('#5d4037', '#ffeb3b', 'crop_ready'), // 収穫可能
+    concrete: createTilePattern('#757575', '#616161', 'town_floor'),
+    counter: createTilePattern('#a1887f', '#5d4037', 'shop_counter'),
+};
+
+function createTilePattern(baseColor, detailColor, type) {
+    const canvas = document.createElement('canvas');
+    canvas.width = TILE_SIZE; canvas.height = TILE_SIZE;
+    const ctx = canvas.getContext('2d');
     
-    <canvas id="game" width="600" height="400"></canvas>
+    // ベース色
+    ctx.fillStyle = baseColor; ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
     
-    <div class="log" id="log">SYSTEM: Welcome to Trading Lab. [WASD] to move, [Space] to Farm/Trade.</div>
+    // タイプ別のドットノイズパターン
+    ctx.fillStyle = detailColor;
+    if(type === 'grass' || type === 'town_floor') {
+        for(let i=0; i<8; i++) ctx.fillRect(Math.random()*TILE_SIZE, Math.random()*TILE_SIZE, 1, 1);
+    } else if(type.includes('crop')) {
+        ctx.fillStyle = detailColor; // 葉の色
+        if(type.includes('small')) ctx.fillRect(6, 10, 4, 4);
+        else if(type.includes('mid')) { ctx.fillRect(6, 6, 4, 8); ctx.fillRect(4, 8, 8, 4); }
+        else if(type.includes('ready')) { ctx.fillRect(4, 4, 8, 10); ctx.fillStyle="#fff"; ctx.fillRect(6, 6, 4, 4); } // 熟した実
+    } else if(type === 'shop_counter') {
+        ctx.fillRect(0,0,TILE_SIZE,2); ctx.fillRect(0,TILE_SIZE-2,TILE_SIZE,2);
+    }
+    return canvas;
+}
 
-    <script>
-        const canvas = document.getElementById('game');
-        const ctx = canvas.getContext('2d');
-        const log = document.getElementById('log');
+// ==========================================
+// 2. マップシステム (巨大マップ・複数枚構造)
+// ==========================================
+// マップごとのオブジェクト配置（簡易版）
+let mapObjects = {
+    farm: { 
+        fields: [{ x: 5, y: 5, w: 20, h: 10, data: [] }] // 畑エリア
+    },
+    town: {
+        shops: [{ x: 10, y: 10, w: 5, h: 3, id: "SEED_SHOP" }, { x: 30, y: 15, w: 3, h: 5, id: "TRADE_POST" }]
+    }
+};
 
-        let player = { x: 50, y: 50, gold: 100, crops: 0 };
-        let others = [{ x: 400, y: 250, id: "Guest_01" }]; // 他のユーザー（シミュレーション）
+// 畑の状態を初期化（成長度合いを保持）
+function initFields() {
+    mapObjects.farm.fields.forEach(f => {
+        for(let i=0; i<f.w*f.h; i++) f.data.push(Math.random() < 0.2 ? 2 : 0); // 初期状態で少し実らせる
+    });
+}
+initFields();
 
-        const TILE_SIZE = 40;
+// マップのタイルを描画（カメラ位置に合わせて）
+function drawMap(currentMapName, ctx, cam) {
+    const startX = Math.floor(cam.x / TILE_SIZE);
+    const startY = Math.floor(cam.y / TILE_SIZE);
+    
+    ctx.save();
+    ctx.scale(SCALE, SCALE);
+    // カメラの端数分だけずらしてスムーズなスクロールを実現
+    ctx.translate(- (cam.x % TILE_SIZE) / SCALE, - (cam.y % TILE_SIZE) / SCALE);
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const texture = (currentMapName === 'farm') ? tex.grass : tex.concrete;
+    const soilTex = tex.soil;
+
+    for (let y = 0; y <= VIEW_H + 1; y++) {
+        for (let x = 0; x <= VIEW_W + 1; x++) {
+            const tx = startX + x; const ty = startY + y;
+            if(tx < 0 || tx >= MAP_WIDTH || ty < 0 || ty >= MAP_HEIGHT) {
+                ctx.fillStyle = "#000"; ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                continue;
+            }
+            // 基本地面
+            ctx.drawImage(texture, x*TILE_SIZE, y*TILE_SIZE);
             
-            // 畑の描画
-            ctx.fillStyle = "#5d4037";
-            ctx.fillRect(100, 100, TILE_SIZE * 3, TILE_SIZE * 2);
-
-            // 他のプレイヤー描画（8bit風）
-            others.forEach(o => {
-                ctx.fillStyle = "blue";
-                ctx.fillRect(o.x, o.y, TILE_SIZE, TILE_SIZE);
-                ctx.fillStyle = "#fff";
-                ctx.fillText(o.id, o.x, o.y - 5);
-            });
-
-            // 自分を描画
-            ctx.fillStyle = "red";
-            ctx.fillRect(player.x, player.y, TILE_SIZE, TILE_SIZE);
-            ctx.fillStyle = "#fff";
-            ctx.fillText("YOU", player.x, player.y - 5);
+            // 畑エリアの描画
+            if(currentMapName === 'farm') {
+                mapObjects.farm.fields.forEach(f => {
+                    if(tx >= f.x && tx < f.x+f.w && ty >= f.y && ty < f.y+f.h) {
+                        const idx = (ty - f.y) * f.w + (tx - f.x);
+                        const growth = f.data[idx];
+                        ctx.drawImage(tex[`crop_${growth}`], x*TILE_SIZE, y*TILE_SIZE);
+                    }
+                });
+            }
+            // 店の描画
+            if(currentMapName === 'town') {
+                mapObjects.town.shops.forEach(s => {
+                    if(tx >= s.x && tx < s.x+s.w && ty >= s.y && ty < s.y+s.h) {
+                        ctx.drawImage(tex.counter, x*TILE_SIZE, y*TILE_SIZE);
+                    }
+                });
+            }
         }
+    }
+    ctx.restore();
+}
 
-        window.addEventListener('keydown', e => {
-            const speed = 10;
-            if(e.key === 'w') player.y -= speed;
-            if(e.key === 's') player.y += speed;
-            if(e.key === 'a') player.x -= speed;
-            if(e.key === 'd') player.x += speed;
+// ==========================================
+// 3. キャラクターエディタ (16x16)
+// ==========================================
+const editCanvas = document.getElementById('pixel-canvas');
+const eCtx = editCanvas.getContext('2d');
+let pixelData = Array(16*16).fill(null); // null = 透明
+let currentColor = '#ffffff';
+const E_TILE = 20; // エディタ上の1ドットの表示サイズ
 
-            // 畑での農業（Spaceキー）
-            if(e.key === ' ') {
-                if(player.x > 100 && player.x < 220 && player.y > 100 && player.y < 180) {
-                    player.crops++;
-                    document.getElementById('crops').innerText = player.crops;
-                    log.innerText += "\nHarvested 1 crop!";
-                }
-                // 他ユーザーとの取引判定
-                if(Math.abs(player.x - others[0].x) < 50 && Math.abs(player.y - others[0].y) < 50) {
-                    if(player.crops > 0) {
-                        player.crops--;
-                        player.gold += 50;
-                        document.getElementById('gold').innerText = player.gold;
-                        document.getElementById('crops').innerText = player.crops;
-                        log.innerText += "\nTraded with " + others[0].id + ": +50 Gold!";
+function drawEditor() {
+    eCtx.clearRect(0, 0, editCanvas.width, editCanvas.height);
+    for (let y = 0; y < 16; y++) {
+        for (let x = 0; x < 16; x++) {
+            const color = pixelData[y * 16 + x];
+            if (color) { eCtx.fillStyle = color; eCtx.fillRect(x * E_TILE, y * E_TILE, E_TILE, E_TILE); }
+            // グリッド線
+            eCtx.strokeStyle = "rgba(255,255,255,0.1)"; eCtx.strokeRect(x * E_TILE, y * E_TILE, E_TILE, E_TILE);
+        }
+    }
+}
+function setEditorColor(color) { currentColor = (color === 'erase') ? null : color; }
+
+// エディタのクリック操作
+editCanvas.addEventListener('mousedown', editPixel);
+editCanvas.addEventListener('mousemove', (e) => { if(e.buttons === 1) editPixel(e); });
+function editPixel(e) {
+    const rect = editCanvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / E_TILE);
+    const y = Math.floor((e.clientY - rect.top) / E_TILE);
+    if(x>=0 && x<16 && y>=0 && y<16) { pixelData[y * 16 + x] = currentColor; drawEditor(); }
+}
+
+// 初期デザイン（少し Saito 風に）
+function initDefaultAvatar() {
+    for(let i=0; i<16*16; i++) {
+        const x = i%16; const y = Math.floor(i/16);
+        if(y>3 && y<12 && x>3 && x<12) pixelData[i] = "#fff"; // 白い胴体
+        if(y>5 && y<9 && x>5 && x<10) pixelData[i] = "#00f";  // 青い顔
+    }
+    drawEditor();
+}
+initDefaultAvatar();
+
+// エディタから実用テクスチャを生成
+function generateTextureFromEditor() {
+    const texCanvas = document.createElement('canvas');
+    texCanvas.width = 16; texCanvas.height = 16;
+    const ctx = texCanvas.getContext('2d');
+    const imgData = ctx.createImageData(16, 16);
+    
+    for (let i = 0; i < 16*16; i++) {
+        const color = pixelData[i];
+        if(color) {
+            const rgb = hexToRgb(color);
+            imgData.data[i*4] = rgb.r; imgData.data[i*4+1] = rgb.g; imgData.data[i*4+2] = rgb.b; imgData.data[i*4+3] = 255;
+        } else { imgData.data[i*4+3] = 0; } // 透明
+    }
+    ctx.putImageData(imgData, 0, 0);
+    return texCanvas;
+}
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : {r:255,g:255,b:255};
+}
+
+// ==========================================
+// 4. 入力システム (キーボード & スマホ用パッド)
+// ==========================================
+// キーボード
+window.addEventListener('keydown', e => {
+    if(gameState !== "playing") return;
+    if(e.key === 'w' || e.key === 'ArrowUp') input.y = -1;
+    if(e.key === 's' || e.key === 'ArrowDown') input.y = 1;
+    if(e.key === 'a' || e.key === 'ArrowLeft') input.x = -1;
+    if(e.key === 'd' || e.key === 'ArrowRight') input.x = 1;
+    if(e.key === ' ') input.act = true;
+});
+window.addEventListener('keyup', e => {
+    if(['w','s','ArrowUp','ArrowDown'].includes(e.key)) input.y = 0;
+    if(['a','d','ArrowLeft','ArrowRight'].includes(e.key)) input.x = 0;
+    if(e.key === ' ') input.act = false;
+});
+
+// スマホ用バーチャルパッド
+if(isMobile) {
+    document.getElementById('touch-controls').style.display = 'flex';
+    const joystick = document.getElementById('joystick');
+    const stick = document.getElementById('stick');
+    const rect = joystick.getBoundingClientRect();
+    const centerX = rect.width / 2; const centerY = rect.height / 2;
+
+    joystick.addEventListener('touchstart', touchMove);
+    joystick.addEventListener('touchmove', touchMove);
+    joystick.addEventListener('touchend', () => { stick.style.transform = `translate(0px, 0px)`; input.x = 0; input.y = 0; });
+
+    function touchMove(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        let tx = touch.clientX - rect.left - centerX;
+        let ty = touch.clientY - rect.top - centerY;
+        const dist = Math.sqrt(tx*tx + ty*ty);
+        const maxDist = 40;
+        if(dist > maxDist) { tx *= maxDist/dist; ty *= maxDist/dist; }
+        stick.style.transform = `translate(${tx}px, ${ty}px)`;
+        // 入力判定（簡易的にデッドゾーンを設ける）
+        input.x = tx > 15 ? 1 : (tx < -15 ? -1 : 0);
+        input.y = ty > 15 ? 1 : (ty < -15 ? -1 : 0);
+    }
+    // アクションボタン
+    const actBtn = document.getElementById('action-bt');
+    actBtn.addEventListener('touchstart', (e) => { e.preventDefault(); input.act = true; });
+    actBtn.addEventListener('touchend', () => input.act = false);
+}
+
+// ==========================================
+// 5. ゲームループ & メインロジック
+// ==========================================
+function update() {
+    if(gameState !== "playing") return;
+
+    let moved = false;
+    const prevGridX = Math.floor(player.x); const prevGridY = Math.floor(player.y);
+    
+    // 移動処理（グリッド単位ではなくスムーズ移動）
+    const speed = 0.2; // タイル/フレーム
+    if(input.x !== 0 || input.y !== 0) {
+        player.x += input.x * speed; player.y += input.y * speed;
+        // マップ端の衝突判定
+        player.x = Math.max(0, Math.min(MAP_WIDTH - 1, player.x));
+        player.y = Math.max(0, Math.min(MAP_HEIGHT - 1, player.y));
+        moved = true;
+    }
+
+    const gridX = Math.floor(player.x); const gridY = Math.floor(player.y);
+
+    // アクション処理（Space/Touch）
+    if(input.act) {
+        input.act = false; // 1クリック1アクション
+
+        // --- 農業ロジック (FARM) ---
+        if(player.map === 'farm') {
+            mapObjects.farm.fields.forEach(f => {
+                if(gridX >= f.x && gridX < f.x+f.w && gridY >= f.y && gridY < f.y+f.h) {
+                    const idx = (gridY - f.y) * f.w + (gridX - f.x);
+                    if(f.data[idx] === 2) { // 収穫可能
+                        f.data[idx] = 0; player.crops++; updateUI(); gameLog("Harvested 1 crop!");
+                    } else if(f.data[idx] === 0) { // 植える
+                        f.data[idx] = 1; gameLog("Planted a seed.");
                     }
                 }
-            }
-            draw();
-        });
+            });
+        }
+        // --- 取引ロジック (TOWN) ---
+        if(player.map === 'town') {
+            mapObjects.town.shops.forEach(s => {
+                if(gridX >= s.x && gridX < s.x+s.w && gridY >= s.y && gridY < s.y+s.h) {
+                    if(s.id === 'TRADE_POST' && player.crops > 0) {
+                        const deal = player.crops * 10;
+                        player.gold += deal; player.crops = 0; updateUI();
+                        gameLog(`Sold all crops for 💰${deal}!`);
+                    } else if(s.id === 'SEED_SHOP' && player.gold >= 50) {
+                         gameLog("Not implemented: Seed buying.");
+                    }
+                }
+            });
+        }
+    }
 
-        // 定期的な描画
-        setInterval(draw, 100);
-    </script>
+    // マップ切り替え判定（端に行ったら遷移、今の20倍の広さ感を演出）
+    if(moved) {
+        let mapChanged = false;
+        if(player.map === 'farm' && player.x > MAP_WIDTH - 1.5) {
+            player.map = 'town'; player.x = 1; mapChanged = true;
+        } else if(player.map === 'town' && player.x < 0.5) {
+            player.map = 'farm'; player.x = MAP_WIDTH - 2; mapChanged = true;
+        }
+        if(mapChanged) {
+            gameLog(`Entered ${player.map.toUpperCase()}.`);
+            updateUI(); // マップ名を更新
+        }
+    }
+
+    // カメラ位置の更新（プレイヤーを中心に、マップ端で止まる）
+    camera.x = Math.max(0, Math.min((MAP_WIDTH * TILE_SIZE) - (VIEW_W * TILE_SIZE), (player.x + 0.5) * TILE_SIZE - (VIEW_W * TILE_SIZE / 2)));
+    camera.y = Math.max(0, Math.min((MAP_HEIGHT * TILE_SIZE) - (VIEW_H * TILE_SIZE), (player.y + 0.5) * TILE_SIZE - (VIEW_H * TILE_SIZE / 2)));
+}
+
+function draw() {
+    if(gameState !== "playing") return;
+    stage.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+    
+    // 1. マップ
+    drawMap(player.map, stage, camera);
+    
+    // 2. 他プレイヤー（シミュレーション、同じマップの人のみ表示）
+    stage.save();
+    stage.scale(SCALE, SCALE);
+    stage.translate(-camera.x / SCALE, -camera.y / SCALE); // カメラ位置に合わせる
+
+    otherPlayers.forEach(o => {
+        if(o.map === player.map) {
+            stage.fillStyle = o.color; stage.fillRect(o.x * TILE_SIZE, o.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            stage.fillStyle = "#fff"; stage.font = "8px monospace"; stage.fillText(o.id, o.x*TILE_SIZE, o.y*TILE_SIZE - 2);
+        }
+    });
+
+    // 3. 自分（自作テクスチャ）
+    if(playerTexture) {
+        stage.drawImage(playerTexture, player.x * TILE_SIZE, player.y * TILE_SIZE);
+    } else {
+        stage.fillStyle = "red"; stage.fillRect(player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE); // フォールバック
+    }
+    stage.restore();
+}
+
+// データ保存
+function saveProgress() { localStorage.setItem('saito_lab_player', JSON.stringify(player)); }
+setInterval(saveProgress, 5000); // 5秒ごとに保存
+
+// UI更新
+function updateUI() {
+    document.getElementById('map-name').innerText = player.map.toUpperCase() + " AREA";
+    document.getElementById('gold').innerText = player.gold;
+    document.getElementById('crops').innerText = player.crops;
+}
+
+function gameLog(msg) {
+    const l = document.getElementById('log');
+    l.innerText += "\n> " + msg;
+    l.scrollTop = l.scrollHeight;
+    clearTimeout(activeLogTimeout);
+    // 10秒後にログをクリア（スマホ画面を広く保つため）
+    activeLogTimeout = setTimeout(()=> { l.innerText = "SYSTEM: Running."; }, 10000);
+}
+
+// ループ定義
+function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+
+// ==========================================
+// 6. 初期化・起動
+// ==========================================
+const gameCanvas = document.getElementById('gameCanvas');
+function initCanvas() {
+    gameCanvas.width = window.innerWidth; gameCanvas.height = window.innerHeight;
+    stage = gameCanvas.getContext('2d');
+    stage.imageSmoothingEnabled = false; // ドット絵の拡大をクッキリさせる
+}
+window.addEventListener('resize', initCanvas);
+
+// ゲーム開始ボタン
+document.getElementById('start-game').addEventListener('click', () => {
+    playerTexture = generateTextureFromEditor(); // 自作ドットを適用
+    document.getElementById('editor-overlay').style.display = 'none';
+    gameState = "playing";
+    initCanvas();
+    updateUI();
+    gameLog("Lab System Initialized. BGM Sycned.");
+    
+    // index.htmlのBGM設定を引き継ぐ（もしONなら流す）
+    if(localStorage.getItem('lab_bgm_enabled') === 'true') {
+        // game.html用の別BGMファイルがあればここで流す（今回は指定がないので無音のまま）
+    }
+});
+
+initCanvas(); // 初回キャンバス設定
+drawEditor(); // エディタ描画開始
+
+// メインループ開始
+requestAnimationFrame(gameLoop);
+
+</script>
 </body>
 </html>
