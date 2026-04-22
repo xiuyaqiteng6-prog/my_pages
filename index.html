@@ -69,6 +69,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
+        /* YouTube回避用（赤系） */
         .btn-youtube:hover {
             background: rgba(255, 0, 0, 0.2);
             border-color: #ff4d4d;
@@ -76,6 +77,7 @@
             transform: translateY(-5px);
         }
 
+        /* AI Lab用（青緑系） */
         .btn-ai:hover {
             background: rgba(0, 255, 204, 0.15);
             border-color: #00ffcc;
@@ -84,7 +86,16 @@
             color: #00ffcc;
         }
 
-        /* BGM動作状況（デバッグ用・不可視に近い設定） */
+        /* Game System用（オレンジ系） */
+        .btn-game:hover {
+            background: rgba(255, 165, 0, 0.15);
+            border-color: #ffa500;
+            box-shadow: 0 0 25px rgba(255, 165, 0, 0.5);
+            transform: translateY(-5px);
+            color: #ffa500;
+        }
+
+        /* BGM動作状況（不可視に近いデバッグ表示） */
         #audio-monitor {
             position: fixed;
             bottom: 10px;
@@ -92,6 +103,7 @@
             color: rgba(255, 255, 255, 0.1);
             font-size: 0.6rem;
             pointer-events: none;
+            z-index: 100;
         }
 
         @keyframes slideUpFade {
@@ -104,6 +116,7 @@
             to { opacity: 1; }
         }
 
+        /* スマホ対応 */
         @media (max-width: 600px) {
             .nav-container { flex-direction: column; width: 80%; }
             .nav-btn { text-align: center; }
@@ -124,6 +137,10 @@
         <a href="ai.html" class="nav-btn btn-ai">
             AI Lab (Learning System)
         </a>
+
+        <a href="game.html" class="nav-btn btn-game">
+            Multiplayer Game (Trade)
+        </a>
     </div>
 
     <audio id="lab-bgm" loop src="/bgm.mp3"></audio>
@@ -133,29 +150,27 @@
         const bgm = document.getElementById('lab-bgm');
         bgm.volume = 0.4;
 
-        // ブラウザの自動再生制限を突破するための「強制発火」関数
-        function forceStartAudio() {
+        // ブラウザ制限を突破して再生を開始する関数
+        function startAudioSystem() {
             if (bgm.paused) {
                 bgm.play().then(() => {
-                    console.log("BGM System Started.");
-                    // AI Labでも確実に再生されるよう状態をセット
                     localStorage.setItem('lab_bgm_enabled', 'true');
+                    document.getElementById('audio-monitor').innerText = "AUDIO_SYSTEM: PLAYING";
                 }).catch(e => {
-                    // まだクリックされていない場合は待機
+                    // クリックを待機中
                 });
             }
         }
 
-        // ユーザーが画面のどこをクリックしても、リンクを押しても、音楽を開始
-        window.addEventListener('mousedown', forceStartAudio);
-        window.addEventListener('touchstart', forceStartAudio);
-        window.addEventListener('keydown', forceStartAudio);
+        // あらゆるユーザー操作をトリガーに音楽を開始
+        window.addEventListener('mousedown', startAudioSystem);
+        window.addEventListener('touchstart', startAudioSystem);
+        window.addEventListener('keydown', startAudioSystem);
 
-        // ページ読み込み時に既に許可されている場合は再生
+        // ページ読み込み時に既に権限がある場合は即再生
         window.addEventListener('load', () => {
-            forceStartAudio();
-            // 500ms後にもう一度試行（安定化のため）
-            setTimeout(forceStartAudio, 500);
+            startAudioSystem();
+            setTimeout(startAudioSystem, 500); // 安定化のための再試行
         });
     </script>
 
