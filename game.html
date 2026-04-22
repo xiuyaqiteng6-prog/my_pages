@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Saito_phD | Trade & Farm</title>
+    <style>
+        body { margin: 0; background: #222; color: #fff; font-family: monospace; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        canvas { border: 4px solid #444; background: #3a5d3a; image-rendering: pixelated; margin-top: 20px; }
+        .ui { width: 600px; display: flex; justify-content: space-between; padding: 10px; background: #000; border: 1px solid #ffa500; margin-top: 10px; }
+        .log { width: 600px; height: 60px; background: rgba(0,0,0,0.8); font-size: 12px; overflow-y: auto; border: 1px solid #444; padding: 5px; }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <span>💰 Gold: <span id="gold">100</span></span>
+        <span>🌾 Crops: <span id="crops">0</span></span>
+        <span>👤 Multi-User: <span id="users">1</span> ONLINE</span>
+    </div>
+    
+    <canvas id="game" width="600" height="400"></canvas>
+    
+    <div class="log" id="log">SYSTEM: Welcome to Trading Lab. [WASD] to move, [Space] to Farm/Trade.</div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const log = document.getElementById('log');
+
+        let player = { x: 50, y: 50, gold: 100, crops: 0 };
+        let others = [{ x: 400, y: 250, id: "Guest_01" }]; // 他のユーザー（シミュレーション）
+
+        const TILE_SIZE = 40;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 畑の描画
+            ctx.fillStyle = "#5d4037";
+            ctx.fillRect(100, 100, TILE_SIZE * 3, TILE_SIZE * 2);
+
+            // 他のプレイヤー描画（8bit風）
+            others.forEach(o => {
+                ctx.fillStyle = "blue";
+                ctx.fillRect(o.x, o.y, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = "#fff";
+                ctx.fillText(o.id, o.x, o.y - 5);
+            });
+
+            // 自分を描画
+            ctx.fillStyle = "red";
+            ctx.fillRect(player.x, player.y, TILE_SIZE, TILE_SIZE);
+            ctx.fillStyle = "#fff";
+            ctx.fillText("YOU", player.x, player.y - 5);
+        }
+
+        window.addEventListener('keydown', e => {
+            const speed = 10;
+            if(e.key === 'w') player.y -= speed;
+            if(e.key === 's') player.y += speed;
+            if(e.key === 'a') player.x -= speed;
+            if(e.key === 'd') player.x += speed;
+
+            // 畑での農業（Spaceキー）
+            if(e.key === ' ') {
+                if(player.x > 100 && player.x < 220 && player.y > 100 && player.y < 180) {
+                    player.crops++;
+                    document.getElementById('crops').innerText = player.crops;
+                    log.innerText += "\nHarvested 1 crop!";
+                }
+                // 他ユーザーとの取引判定
+                if(Math.abs(player.x - others[0].x) < 50 && Math.abs(player.y - others[0].y) < 50) {
+                    if(player.crops > 0) {
+                        player.crops--;
+                        player.gold += 50;
+                        document.getElementById('gold').innerText = player.gold;
+                        document.getElementById('crops').innerText = player.crops;
+                        log.innerText += "\nTraded with " + others[0].id + ": +50 Gold!";
+                    }
+                }
+            }
+            draw();
+        });
+
+        // 定期的な描画
+        setInterval(draw, 100);
+    </script>
+</body>
+</html>
